@@ -8,6 +8,6 @@ public class HelloController {
 
     @GetMapping("/ping")
     public String hello() {
-        return "pong";
+        return "web-hook-test-success";
     }
 }
