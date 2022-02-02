@@ -41,7 +41,7 @@ pipeline {
         }
     }
 
-    stage('=============== Run Test Code ===============') {
+    stage('=============== Run Build Code ===============') {
         when {
             expression { return params.BUILD_TEST }
         }
