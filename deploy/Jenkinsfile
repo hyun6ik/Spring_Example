@@ -1,27 +1,96 @@
 pipeline {
-    agent any
+  agent any
 
-    stages {
+  parameters {
+    booleanParam(name: "BUILD_DOCKER_IMAGE", defaultValue: true, description: 'BUILD_DOCKER_IMAGE')
+    booleanParam(name: "RUN_TEST", defaultValue: true, description: 'RUN_TEST')
+    booleanParam(name: "BUILD_TEST", defaultValue: true, description: 'BUILD_TEST')
+    booleanParam(name: "PUSH_DOCKER_IMAGE", defaultValue: true, description: 'PUSH_DOCKER_IMAGE')
+    booleanParam(name: "DEPLOY_WORK_LOAD", defaultValue: true, description: 'DEPLOY_WORK_LOAD')
+  }
 
-        stage('CheckOut') {
-            steps {
-                echo 'checkout backend...'
-                checkout([$class: 'GitSCM', branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/hyun6ik/Spring_Example.git']]])
+  environment {
+    REGION = "ap-northeast-2"
+  }
+
+  stages {
+
+    stage('=============== Build Docker Image ===============') {
+        when {
+            expression { return params.BUILD_DOCKER_IMAGE }
+        }
+        steps {
+            dir("${env.WORKSPACE}") {
+                sh 'docker build -t hyun6ik/spring-example .'
+            }
+            echo "Build Docker Image"
+        }
+        post {
+            always {
+                echo "Docker Build Success"
             }
         }
-
-        stage('Build And Test') {
-            steps {
-                echo 'build backend....'
-
-                dir('./') {
-                    sh '''
-                        chmod +x ./gradlew
-                        ./gradlew clean build
-                    '''
-                }
-            }
-        }
-
     }
+
+    stage('=============== Run Test Code ===============') {
+        when {
+            expression { return params.RUN_TEST }
+        }
+        steps {
+            sh('docker run --rm hyun6ik/spring-example ./gradlew test')
+        }
+    }
+
+    stage('=============== Run Test Code ===============') {
+        when {
+            expression { return params.BUILD_TEST }
+        }
+        steps {
+            sh('docker run --rm hyun6ik/spring-example ./gradlew build -x test')
+        }
+    }
+
+    stage('=============== Push Docker Image ===============') {
+        when {
+            expression { return params.PUSH_DOCKER_IMAGE }
+        }
+        steps {
+           echo "Push Docker Image"
+        }
+    }
+
+    stage('=============== Deploy Work Load ===============') {
+        when {
+            expression { return params.DEPLOY_WORK_LOAD }
+        }
+        steps {
+            echo "Deploy Work Load"
+        }
+    }
+
+//     stage('Build And Test') {
+//         steps {
+//             echo 'build backend....'
+//
+//             dir('./') {
+//                 sh '''
+//                    ./gradlew build -x test
+//                 '''
+//             }
+//         }
+//     }
+//   }
+//
+//       stage('Test') {
+//           steps {
+//               echo 'build backend....'
+//
+//               dir('./') {
+//                   sh '''
+//                       ./gradlew test
+//                   '''
+//               }
+//           }
+//       }
+//     }
 }
