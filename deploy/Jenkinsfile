@@ -67,30 +67,5 @@ pipeline {
             echo "Deploy Work Load"
         }
     }
-
-//     stage('Build And Test') {
-//         steps {
-//             echo 'build backend....'
-//
-//             dir('./') {
-//                 sh '''
-//                    ./gradlew build -x test
-//                 '''
-//             }
-//         }
-//     }
-//   }
-//
-//       stage('Test') {
-//           steps {
-//               echo 'build backend....'
-//
-//               dir('./') {
-//                   sh '''
-//                       ./gradlew test
-//                   '''
-//               }
-//           }
-//       }
-//     }
+  }
 }
