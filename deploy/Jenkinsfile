@@ -32,21 +32,13 @@ pipeline {
         }
     }
 
-    stage('=============== Run Test Code ===============') {
-        when {
-            expression { return params.RUN_TEST }
-        }
-        steps {
-            sh('docker run --rm hyun6ik/spring-example ./gradlew test')
-        }
-    }
 
-    stage('=============== Run Build Code ===============') {
+    stage('=============== Run Build And Test Code===============') {
         when {
             expression { return params.BUILD_TEST }
         }
         steps {
-            sh('docker run --rm hyun6ik/spring-example ./gradlew build -x test')
+            sh('docker run --rm hyun6ik/spring-example ./gradlew clean build')
         }
     }
 
