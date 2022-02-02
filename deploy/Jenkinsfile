@@ -40,6 +40,11 @@ pipeline {
         steps {
             sh('docker run --rm hyun6ik/spring-example ./gradlew clean build')
         }
+        post {
+           success {
+              sh 'docker stop hyun6ik/spring-example'
+           }
+        }
     }
 
     stage('=============== Push Docker Image ===============') {
