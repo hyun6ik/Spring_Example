@@ -7,15 +7,21 @@ pipeline {
     booleanParam(name: "BUILD_TEST", defaultValue: true, description: 'BUILD_TEST')
     booleanParam(name: "PUSH_DOCKER_IMAGE", defaultValue: true, description: 'PUSH_DOCKER_IMAGE')
     booleanParam(name: "DEPLOY_WORK_LOAD", defaultValue: true, description: 'DEPLOY_WORK_LOAD')
+
+    string(name : 'AWS_ACCOUNT_ID', defaultValue : '705494525874', description : 'AWS_ACCOUNT_ID')
+    string(name : 'DOCKER_IMAGE_NAME', defaultValue : 'spring-example', description : 'DOCKER_IMAGE_NAME')
+    string(name : 'DOCKER_TAG', defaultValue : '1', description : 'DOCKER_TAG')
   }
 
   environment {
     REGION = "ap-northeast-2"
+    ECR_REPOSITORY = "${params.AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com/hyunsik"
+    DOCKER_IMAGE = "${ECR_REPOSITORY}/${DOCKER_IMAGE}:${DOCKER_TAG}"
   }
 
   stages {
 
-    stage('=============== Run Build And Test Code===============') {
+    stage('=============== Run Build ===============') {
         when {
             expression { return params.BUILD_TEST }
         }
@@ -31,7 +37,7 @@ pipeline {
         }
         steps {
             dir("${env.WORKSPACE}") {
-                sh 'docker build -t hyun6ik/spring-example .'
+                sh 'docker build -t ${DOCKER_IMAGE} .'
             }
             echo "Build Docker Image"
         }
@@ -48,7 +54,11 @@ pipeline {
             expression { return params.PUSH_DOCKER_IMAGE }
         }
         steps {
-           echo "Push Docker Image"
+           echo "Push Docker Image to ECR"
+           sh '''
+                aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ECR_REPOSITORY}
+                docker push ${DOCKER_IMAGE}
+           '''
         }
     }
 
