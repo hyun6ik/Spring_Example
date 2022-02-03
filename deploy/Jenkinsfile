@@ -32,7 +32,6 @@ pipeline {
         when {
             expression { return params.BUILD_TEST }
         }
-        agent { label 'build' }
         steps {
             sh('chmod +x gradlew')
             sh('./gradlew clean build')
@@ -43,7 +42,6 @@ pipeline {
         when {
             expression { return params.BUILD_DOCKER_IMAGE }
         }
-        agent { label 'build' }
         steps {
             dir("${env.WORKSPACE}") {
                 sh 'docker build -t ${ECR_DOCKER_IMAGE}:${ECR_DOCKER_TAG} .'
@@ -62,7 +60,6 @@ pipeline {
         when {
             expression { return params.PUSH_DOCKER_IMAGE }
         }
-        agent { label 'build' }
         steps {
            echo "Push Docker Image to ECR"
            sh '''
