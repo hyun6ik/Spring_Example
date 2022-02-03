@@ -2,7 +2,6 @@ pipeline {
   agent any
 
   parameters {
-    booleanParam(name: "GIT_CHECKOUT", defaultValue: true, description: 'GIT_CHECKOUT')
     booleanParam(name: "BUILD_DOCKER_IMAGE", defaultValue: true, description: 'BUILD_DOCKER_IMAGE')
     booleanParam(name: "RUN_TEST", defaultValue: true, description: 'RUN_TEST')
     booleanParam(name: "BUILD_TEST", defaultValue: true, description: 'BUILD_TEST')
@@ -15,21 +14,14 @@ pipeline {
   }
 
   stages {
-    stage('CheckOut') {
-        when {
-            expression { return params.GIT_CHECKOUT}
-        }
-        steps {
-            checkout([$class: 'GitSCM', branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/hyun6ik/Spring_Example.git']]])
-        }
-    }
 
     stage('=============== Run Build And Test Code===============') {
         when {
             expression { return params.BUILD_TEST }
         }
         steps {
-            sh('gradle clean build')
+            sh('sudo chmod +x gradlew')
+            sh('./gradlew clean build')
         }
     }
 
