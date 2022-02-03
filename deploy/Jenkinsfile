@@ -73,7 +73,6 @@ pipeline {
         when {
             expression { return params.DEPLOY_WORK_LOAD }
         }
-        agent { label 'deploy' }
         steps {
             sshagent (credentials: ['aws_ec2_user_ssh']) {
                             sh '''#!/bin/bash
