@@ -16,7 +16,7 @@ pipeline {
     // CD
     string(name : 'TARGET_SVR_USER', defaultValue : 'ec2-user', description : 'TARGET_SVR_USER')
     string(name : 'TARGET_SVR_PATH', defaultValue : '/home/ec2-user/', description : 'TARGET_SVR_PATH')
-    string(name : 'TARGET_SVR', defaultValue : '10.0.103.104', description : 'TARGET_SVR')
+    string(name : 'TARGET_SVR', defaultValue : '54.180.79.236', description : 'TARGET_SVR')
   }
 
   environment {
@@ -75,10 +75,11 @@ pipeline {
         }
         steps {
             sshagent (credentials: ['aws_ec2_user_ssh']) {
-                            sh '''#!/bin/bash
+                            sh """#!/bin/bash
                                 scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no \
                                     deploy/docker-compose.yml \
                                     ${params.TARGET_SVR_USER}@${params.TARGET_SVR}:${params.TARGET_SVR_PATH};
+
                                 ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no \
                                     ${params.TARGET_SVR_USER}@${params.TARGET_SVR} \
                                     'aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ECR_REPOSITORY}; \
@@ -86,7 +87,7 @@ pipeline {
                                      export TAG=${ECR_DOCKER_TAG}; \
                                      docker-compose -f docker-compose.yml down;
                                      docker-compose -f docker-compose.yml up -d';
-                            '''
+                            """
         }
       }
     }
