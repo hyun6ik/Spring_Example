@@ -8,9 +8,15 @@ pipeline {
     booleanParam(name: "PUSH_DOCKER_IMAGE", defaultValue: true, description: 'PUSH_DOCKER_IMAGE')
     booleanParam(name: "DEPLOY_WORK_LOAD", defaultValue: true, description: 'DEPLOY_WORK_LOAD')
 
+    // CI
     string(name : 'AWS_ACCOUNT_ID', defaultValue : '705494525874', description : 'AWS_ACCOUNT_ID')
     string(name : 'DOCKER_IMAGE_NAME', defaultValue : 'spring-example', description : 'DOCKER_IMAGE_NAME')
     string(name : 'DOCKER_TAG', defaultValue : '1', description : 'DOCKER_TAG')
+
+    // CD
+    string(name : 'TARGET_SVR_USER', defaultValue : 'ec2-user', description : 'TARGET_SVR_USER')
+    string(name : 'TARGET_SVR_PATH', defaultValue : '/home/ec2-user/', description : 'TARGET_SVR_PATH')
+    string(name : 'TARGET_SVR', defaultValue : '10.0.3.61', description : 'TARGET_SVR')
   }
 
   environment {
@@ -26,6 +32,7 @@ pipeline {
         when {
             expression { return params.BUILD_TEST }
         }
+        agent { label 'build' }
         steps {
             sh('chmod +x gradlew')
             sh('./gradlew clean build')
@@ -36,6 +43,7 @@ pipeline {
         when {
             expression { return params.BUILD_DOCKER_IMAGE }
         }
+        agent { label 'build' }
         steps {
             dir("${env.WORKSPACE}") {
                 sh 'docker build -t ${ECR_DOCKER_IMAGE}:${ECR_DOCKER_TAG} .'
@@ -54,6 +62,7 @@ pipeline {
         when {
             expression { return params.PUSH_DOCKER_IMAGE }
         }
+        agent { label 'build' }
         steps {
            echo "Push Docker Image to ECR"
            sh '''
@@ -63,21 +72,6 @@ pipeline {
         }
     }
 
-    stage('=============== Deploy Work Load ===============') {
-        when {
-            expression { return params.DEPLOY_WORK_LOAD }
-        }
-        steps {
-            echo "Deploy Work Load"
-        }
-    }
-  }
 
-    post {
-        cleanup {
-            sh('docker image prune -f')
-            sh('docker container prune -f')
-        }
-    }
 
 }
