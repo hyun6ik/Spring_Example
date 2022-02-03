@@ -9,13 +9,13 @@ pipeline {
     booleanParam(name: "DEPLOY_WORK_LOAD", defaultValue: true, description: 'DEPLOY_WORK_LOAD')
 
     string(name : 'AWS_ACCOUNT_ID', defaultValue : '705494525874', description : 'AWS_ACCOUNT_ID')
-    string(name : 'DOCKER_IMAGE_NAME', defaultValue : 'spring-example', description : 'DOCKER_IMAGE_NAME')
+    string(name : 'DOCKER_IMAGE_NAME', defaultValue : 'hyunsik', description : 'DOCKER_IMAGE_NAME')
     string(name : 'DOCKER_TAG', defaultValue : '1', description : 'DOCKER_TAG')
   }
 
   environment {
     REGION = "ap-northeast-2"
-    ECR_REPOSITORY = "${params.AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com/hyunsik"
+    ECR_REPOSITORY = "${params.AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com"
     DOCKER_IMAGE = "${ECR_REPOSITORY}/${params.DOCKER_IMAGE_NAME}:${params.DOCKER_TAG}"
   }
 
