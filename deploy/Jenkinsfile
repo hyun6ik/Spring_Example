@@ -15,6 +15,17 @@ pipeline {
 
   stages {
 
+
+
+    stage('=============== Run Build And Test Code===============') {
+        when {
+            expression { return params.BUILD_TEST }
+        }
+        steps {
+            sh('./gradlew clean build')
+        }
+    }
+
     stage('=============== Build Docker Image ===============') {
         when {
             expression { return params.BUILD_DOCKER_IMAGE }
@@ -32,20 +43,6 @@ pipeline {
         }
     }
 
-
-    stage('=============== Run Build And Test Code===============') {
-        when {
-            expression { return params.BUILD_TEST }
-        }
-        steps {
-            sh('docker run --rm hyun6ik/spring-example ./gradlew clean build')
-        }
-        post {
-           success {
-              sh 'docker stop hyun6ik/spring-example'
-           }
-        }
-    }
 
     stage('=============== Push Docker Image ===============') {
         when {
