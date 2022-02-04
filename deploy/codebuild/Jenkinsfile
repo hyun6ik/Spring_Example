@@ -23,7 +23,7 @@ pipeline {
     ECR_DOCKER_IMAGE = "${ECR_REPOSITORY}/${params.DOCKER_IMAGE_NAME}"
     ECR_DOCKER_TAG = "${params.DOCKER_TAG}"
 
-    CODEBUILD_NAME = "jenkins-coldbuild-codebuild"
+    CODEBUILD_NAME = "hyun6ik-jenkins-slave-codebuild"
   }
 
   stages {
