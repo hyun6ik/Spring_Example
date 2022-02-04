@@ -23,7 +23,7 @@ pipeline {
     ECR_DOCKER_IMAGE = "${ECR_REPOSITORY}/${params.DOCKER_IMAGE_NAME}"
     ECR_DOCKER_TAG = "${params.DOCKER_TAG}"
 
-    CODEBUILD_NAME = "jenkins-slave-codebuild"
+    CODEBUILD_NAME = "jenkins-coldbuild-codebuild"
   }
 
   stages {
@@ -41,40 +41,5 @@ pipeline {
             )
         }
     }
-//     stage('Prompt for deploy') {
-//         when { expression { return params.PROMPT_FOR_DEPLOY } }
-//         agent { label 'deploy' }
-//         steps {
-// //             input 'Deploy this?'
-//             script {
-//                 env.APPROAL_NUM = input message: 'Please enter the approval number',
-//                                   parameters: [string(defaultValue: '',
-//                                                description: '',
-//                                                name: 'APPROVAL_NUM')]
-//             }
-//
-//             echo "${env.APPROAL_NUM}"
-//         }
-//     }
-//     stage('============ Deploy workload ============') {
-//         when { expression { return params.DEPLOY_WORKLOAD } }
-//         agent { label 'deploy' }
-//         steps {
-//             sshagent (credentials: ['aws_ec2_user_ssh']) {
-//                 sh """#!/bin/bash
-//                     scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no \
-//                         deploy/docker-compose.yml \
-//                         ${params.TARGET_SVR_USER}@${params.TARGET_SVR}:${params.TARGET_SVR_PATH};
-//
-//                     ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no \
-//                         ${params.TARGET_SVR_USER}@${params.TARGET_SVR} \
-//                         'aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ECR_REPOSITORY}; \
-//                          export IMAGE=${ECR_DOCKER_IMAGE}; \
-//                          export TAG=${ECR_DOCKER_TAG}; \
-//                          docker-compose -f docker-compose.yml down;
-//                          docker-compose -f docker-compose.yml up -d';
-//                 """
-//             }
-//         }
-    }
   }
+}
