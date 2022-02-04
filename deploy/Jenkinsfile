@@ -1,5 +1,5 @@
 pipeline {
-  agent any
+  agent { label 'master' }
 
   parameters {
     booleanParam(name: "BUILD_DOCKER_IMAGE", defaultValue: true, description: 'BUILD_DOCKER_IMAGE')
@@ -16,7 +16,7 @@ pipeline {
     // CD
     string(name : 'TARGET_SVR_USER', defaultValue : 'ec2-user', description : 'TARGET_SVR_USER')
     string(name : 'TARGET_SVR_PATH', defaultValue : '/home/ec2-user/', description : 'TARGET_SVR_PATH')
-    string(name : 'TARGET_SVR', defaultValue : '54.180.79.236', description : 'TARGET_SVR')
+    string(name : 'TARGET_SVR', defaultValue : '10.0.103.143', description : 'TARGET_SVR')
   }
 
   environment {
@@ -32,6 +32,8 @@ pipeline {
         when {
             expression { return params.BUILD_TEST }
         }
+        agent { label 'build' }
+
         steps {
             sh('chmod +x gradlew')
             sh('./gradlew clean build')
@@ -42,6 +44,7 @@ pipeline {
         when {
             expression { return params.BUILD_DOCKER_IMAGE }
         }
+        agent { label 'build' }
         steps {
             dir("${env.WORKSPACE}") {
                 sh 'docker build -t ${ECR_DOCKER_IMAGE}:${ECR_DOCKER_TAG} .'
@@ -60,6 +63,7 @@ pipeline {
         when {
             expression { return params.PUSH_DOCKER_IMAGE }
         }
+        agent { label 'build' }
         steps {
            echo "Push Docker Image to ECR"
            sh '''
@@ -73,8 +77,9 @@ pipeline {
         when {
             expression { return params.DEPLOY_WORK_LOAD }
         }
+        agent { label 'deploy' }
         steps {
-            sshagent (credentials: ['aws_ec2_user_ssh']) {
+            sshagent (credentials: ['ec2_user']) {
                             sh """#!/bin/bash
                                 scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no \
                                     deploy/docker-compose.yml \
