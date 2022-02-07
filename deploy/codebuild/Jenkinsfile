@@ -51,41 +51,42 @@ pipeline {
         }
     }
     stage('============ Deploy workload ============') {
-            when { expression { return params.DEPLOY_WORKLOAD } }
-            agent { label 'master' }
-            steps {
-                echo "Run CodeDeploy with creating deployment"
-                script {
-                    sh'''
-                        aws deploy create-deployment \
-                            --application-name ${CODEDEPLOY_NAME} \
-                            --deployment-group-name ${CODEDEPLOY_GROUP_NAME} \
-                            --region ${REGION} \
-                            --s3-location bucket=${CODEBUILD_ARTIFACT_S3_NAME},bundleType=zip,key=${CODEBUILD_ARTIFACT_S3_KEY} \
-                            --file-exists-behavior OVERWRITE \
-                            --output json > DEPLOYMENT_ID.json
-                    '''
-                    def DEPLOYMENT_ID = sh(script: "cat DEPLOYMENT_ID.json | grep -o '\"deploymentId\": \"[^\"]*' | cut -d'\"' -f4", returnStdout: true).trim()
-                    echo "$DEPLOYMENT_ID"
-                    sh "rm -rf ./DEPLOYMENT_ID.json"
-                    def DEPLOYMENT_RESULT = ""
-                    while("$DEPLOYMENT_RESULT" != "\"Succeeded\"") {
-                        DEPLOYMENT_RESULT = sh(
-                            script:"aws deploy get-deployment \
-                                        --region ${REGION} \
-                                        --query \"deploymentInfo.status\" \
-                                        --deployment-id ${DEPLOYMENT_ID}",
-                            returnStdout: true
-                        ).trim()
-                        echo "$DEPLOYMENT_RESULT"
-                        if ("$DEPLOYMENT_RESULT" == "\"Failed\"") {
-                            currentBuild.result = 'FAILURE'
-                            break
-                        }
-                        sleep(10) // sleep 10s
+        when { expression { return params.DEPLOY_WORKLOAD } }
+        agent { label 'master' }
+        steps {
+            echo "Run CodeDeploy with creating deployment"
+            script {
+                sh'''
+                    aws deploy create-deployment \
+                        --application-name ${CODEDEPLOY_NAME} \
+                        --deployment-group-name ${CODEDEPLOY_GROUP_NAME} \
+                        --region ${REGION} \
+                        --s3-location bucket=${CODEBUILD_ARTIFACT_S3_NAME},bundleType=zip,key=${CODEBUILD_ARTIFACT_S3_KEY} \
+                        --file-exists-behavior OVERWRITE \
+                        --output json > DEPLOYMENT_ID.json
+                '''
+                def DEPLOYMENT_ID = sh(script: "cat DEPLOYMENT_ID.json | grep -o '\"deploymentId\": \"[^\"]*' | cut -d'\"' -f4", returnStdout: true).trim()
+                echo "$DEPLOYMENT_ID"
+                sh "rm -rf ./DEPLOYMENT_ID.json"
+                def DEPLOYMENT_RESULT = ""
+                while("$DEPLOYMENT_RESULT" != "\"Succeeded\"") {
+                    DEPLOYMENT_RESULT = sh(
+                        script:"aws deploy get-deployment \
+                                    --region ${REGION} \
+                                    --query \"deploymentInfo.status\" \
+                                    --deployment-id ${DEPLOYMENT_ID}",
+                        returnStdout: true
+                    ).trim()
+                    echo "$DEPLOYMENT_RESULT"
+                    if ("$DEPLOYMENT_RESULT" == "\"Failed\"") {
+                        currentBuild.result = 'FAILURE'
+                        break
                     }
-                    currentBuild.result = 'SUCCESS'
+                    sleep(10) // sleep 10s
                 }
+                currentBuild.result = 'SUCCESS'
             }
+        }
+    }
   }
 }
