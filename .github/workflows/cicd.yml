@@ -81,10 +81,10 @@ jobs:
           CODEDEPLOY_NAME: spring-example-codedeploy-app
           CODEDEPLOY_GROUP_NAME: dev-codedeploy-group
           S3_NAME: hyun6ik-github-s3
-        run:
+        run: |
           aws deploy create-deployment \
-          --application-name ${CODEDEPLOY_NAME} \
-          --deployment-group-name ${CODEDEPLOY_GROUP_NAME} \
-          --region ${REGION} \
-          --s3-location bucket=${S3_NAME},bundleType=zip,key=$GITHUB_SHA.zip \
-          --file-exists-behavior OVERWRITE \
+            --application-name ${CODEDEPLOY_NAME} \
+            --deployment-group-name ${CODEDEPLOY_GROUP_NAME} \
+            --region ${REGION} \
+            --s3-location bucket=${S3_NAME},bundleType=zip,key=$GITHUB_SHA.zip \
+            --file-exists-behavior OVERWRITE \
