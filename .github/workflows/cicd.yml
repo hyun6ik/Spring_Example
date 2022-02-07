@@ -50,7 +50,8 @@ jobs:
 
       - name: Make ZIP File
         run: |
-          zip -j ./$GITHUB_SHA.zip \
+          zip -j \
+            ./$GITHUB_SHA.zip \
             deploy/codedeploy/appspec.yml \
             deploy/scripts/kill_process.sh \
             deploy/scripts/run_process.sh \
@@ -63,3 +64,27 @@ jobs:
           S3_NAME: hyun6ik-github-s3
         run: aws s3 cp --region ${REGION} ./$GITHUB_SHA.zip s3://${S3_NAME}/$GITHUB_SHA.zip
 
+  cd:
+    needs: [ci]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Create CodeDeploy Deployment
+        env:
+          REGION: ap-northeast-2
+          CODEDEPLOY_NAME: spring-examploe-codedeploy-app
+          CODEDEPLOY_GROUP_NAME: dev-codedeploy-group
+          S3_NAME: hyun6ik-github-s3
+        run:
+          aws deploy create-deployment \
+          --application-name ${CODEDEPLOY_NAME} \
+          --deployment-group-name ${CODEDEPLOY_GROUP_NAME} \
+          --region ${REGION} \
+          --s3-location bucket=${S3_NAME},bundleType=zip,key=$GITHUB_SHA.zip \
+          --file-exists-behavior OVERWRITE \
