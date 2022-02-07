@@ -46,7 +46,7 @@ jobs:
       - name: Docker image Push
         id: test
         run: |
-          docker push ${{ steps.set-var.outputs.ECR_REGISTRY }}/${{ setp.set-var.outputs.ECR_REPOSITORY}}:${{ steps.set-var.outputs.IMAGE_TAG }}
+          docker push ${{ steps.set-var.outputs.ECR_REGISTRY }}/${{ steps.set-var.outputs.ECR_REPOSITORY}}:${{ steps.set-var.outputs.IMAGE_TAG }}
 
       - name: Make ZIP File
         run: |
