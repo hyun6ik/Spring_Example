@@ -1,0 +1,65 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [ master ]
+    paths-ignore:
+      - '.gitignore'
+      - '.dockerignore'
+      - 'README.md'
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Set var
+        id: set-var
+        run: |
+          echo ::set-output name=ECR_REGISTRY::${{ steps.login-ecr.outputs.registry }}
+          echo ::set-output name=ECR_REPOSITORY::spring-example
+          echo ::set-output name=IMAGE_TAG::$(cat VERSION)
+
+      - name: Docker image Build
+        id: build-image
+        run: |
+          docker build \
+            -f Dockerfile \
+            -t ${{ steps.set-var.outputs.ECR_REGISTRY }}/${{ steps.set-var.outputs.ECR_REPOSITORY }}:${{ steps.set-var.outputs.IMAGE_TAG }} .
+
+      - name: Docker image Push
+        id: test
+        run: |
+          docker push ${{ steps.set-var.outputs.ECR_REGISTRY }}/${{ setp.set-var.outputs.ECR_REPOSITORY}}:${{ steps.set-var.outputs.IMAGE_TAG }}
+
+      - name: Make ZIP File
+        run: |
+          zip -j ./$GITHUB_SHA.zip \
+            deploy/codedeploy/appspec.yml \
+            deploy/scripts/kill_process.sh \
+            deploy/scripts/run_process.sh \
+            deploy/docker-compose.yml
+        shell: bash
+
+      - name: Upload To S3
+        env:
+          REGION: ap-northeast-2
+          S3_NAME: hyun6ik-github-s3
+        run: aws s3 cp --region ${REGION} ./$GITHUB_SHA.zip s3://${S3_NAME}/$GITHUB_SHA.zip
+
