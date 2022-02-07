@@ -3,7 +3,7 @@ env:
   variables:
     AWS_DEFAULT_REGION: "ap-northeast-2"
     ECR_URL: "705494525874.dkr.ecr.ap-northeast-2.amazonaws.com"
-    ECR_DOCKER_NAME: "spring-example"
+    ECR_DOCKER_IMAGE: "spring-example"
     ECR_DOCKER_TAG: "1"
 
 phases:
