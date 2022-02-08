@@ -1,0 +1,21 @@
+name: Send Slack Message
+
+on:
+  push:
+    branches: [ master ]
+    paths-ignore:
+      - '.gitignore'
+      - '.dockerignore'
+      - 'README.md'
+
+jobs:
+  slack:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Slack Message
+        uses: hyun6ik/GitHubActions-Custom@master
+        with:
+          args: slack
+        env:
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+          SLACK_MESSAGE: 슬랙 메세지요~
