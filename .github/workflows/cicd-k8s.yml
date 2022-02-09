@@ -38,7 +38,7 @@ jobs:
           echo ::set-output name=ECR_REPOSITORY::spring-example
           echo ::set-output name=IMAGE_TAG::$(cat VERSION)
 
-      - name: Docker image Build
+      - name: Docker Image Build
         id: build-image
         run: |
           docker build \
