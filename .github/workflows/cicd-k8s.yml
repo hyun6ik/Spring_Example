@@ -1,0 +1,81 @@
+name: CI/CD With k8s
+
+on:
+  push:
+    branches: [ master ]
+    paths-ignore:
+      - '.gitignore'
+      - '.dockerignore'
+      - 'README.md'
+  pull_request: [ master ]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    outputs:
+      IMAGE_TAG: ${{ steps.set-var.outputs.IMAGE_TAG }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-secret-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: set-var
+        id: set-var
+        run: |
+          echo ::set-output name=ECR_REGISTRY::${{ steps.login-ecr-outputs.registry }}
+          echo ::set-output name=ECR_REPOSITORY::spring-example
+          echo ::set-output name=IMAGE_TAG::$(cat VERSION)
+
+      - name: Docker Image Build
+        id: build-image
+        run: |
+          docker build \
+            -f Dockerfile \
+            -t ${{ steps.set-var.outputs.ECR_REGISTRY }}/${{ steps.set-var.outputs.ECR_REPOSITORY }}:${{ steps.set-var.outputs.IMAGE_TAG }} .
+
+      - name: Docker Image Push
+        id: push-image
+        run: |
+          docker push ${{ steps.set-var.outputs.ECR_REGISTRY }}/${{ steps.set-var.outputs.ECR_REPOSITORY }}:${{ steps.set-var.outputs.IMAGE_TAG }}
+
+  cd:
+    needs: [ci]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Target Repository
+        uses: actions/checkout@v2
+        with:
+          repository: hyun6ik/ArgoCD-Study
+          path: deploy-k8s
+
+      - name: Replace Image Tag In Helm Values (LOCAL)
+        uses: mikefarah/yq@master
+        env:
+          IMAGE_TAG: ${{ needs.ci.outputs.IMAGE_TAG }}
+        with:
+          cmd: yq eval -i '.image.tag = env(IMAGE_TAG)' 'deploy-k8s/spring-example/values.yaml'
+
+      - name: Push Helm Repository
+        env:
+          token: ${{ sercrets.GH_TOKEN }}
+          IMAGE_TAG: ${{ needs.ci.outputs.IMAGE_TAG }}
+        run: |
+          cd deploy-k8s
+          git config --global user.email "fkanwm@naver.com"
+          git config --global user.name "hyun6ik"
+
+          git add spring-example/values.yaml;
+          git commit --message "Update spring-example Image Tag to $IMAGE_TAG";
+          git config -l | grep 'http\..*\.extraheader' | cut -d= -f1 | xargs -L1 git config --unset-all
+          git push --prune https://token:$token@github.com/hyun6ik/ArgoCD-Study.git
