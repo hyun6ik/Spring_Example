@@ -69,7 +69,7 @@ jobs:
 
       - name: Push Helm Repository
         env:
-          token: ${{ sercrets.GH_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
           IMAGE_TAG: ${{ needs.ci.outputs.IMAGE_TAG }}
         run: |
           cd deploy-k8s
