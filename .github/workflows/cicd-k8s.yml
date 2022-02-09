@@ -31,14 +31,14 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: set-var
+      - name: Set var
         id: set-var
         run: |
-          echo ::set-output name=ECR_REGISTRY::${{ steps.login-ecr-outputs.registry }}
+          echo ::set-output name=ECR_REGISTRY::${{ steps.login-ecr.outputs.registry }}
           echo ::set-output name=ECR_REPOSITORY::spring-example
           echo ::set-output name=IMAGE_TAG::$(cat VERSION)
 
-      - name: Docker Image Build
+      - name: Docker image Build
         id: build-image
         run: |
           docker build \
